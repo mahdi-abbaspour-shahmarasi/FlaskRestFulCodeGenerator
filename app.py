@@ -1,11 +1,14 @@
-import inspect
-def props(cls):   
-  return [i for i in cls.__dict__.keys() if i[:1] != '_']
-
-class User():
-    email = ''
-    password = ''
-    realName= ''
-
-properties = props(User)
-print(properties)
+from art import *
+import os
+def clearScreen():
+  os.system('cls' if os.name=='nt' else 'clear')
+clearScreen()
+tprint('CodeGenerator')
+print('====================================================================================')
+print('0. Generate Code Step By Step')
+print('1. Generate Code By Existing Class')
+print('2. Help')
+print('3. About')
+print('4. Exit')
+print('====================================================================================')
+input('Select Menu Item: ')
