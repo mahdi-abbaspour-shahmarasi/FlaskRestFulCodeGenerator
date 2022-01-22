@@ -8,11 +8,11 @@ clearScreen()
 tprint('CodeGenerator')
 print('====================================================================================')
 
-print('0. Generate Code Step By Step')
-print('1. Generate Code By Existing Class')
-print('2. Help')
-print('3. About')
-print('4. Exit')
+print('1. Generate Code Step By Step')
+print('2. Generate Code By Existing Class')
+print('3. Help')
+print('4. About')
+print('0. Exit')
 print('====================================================================================')
 
 
@@ -47,7 +47,7 @@ user_cmd=inp_value
 
 
 #define menu options as functions
-def option0():
+def option1():
     print('==== Generate Code Step By Step ====\n')
 
     class_name=input("Please enter class name: ")
@@ -84,9 +84,6 @@ def option0():
     print("Class file created with "+class_name+".py"+" name.")
 
 
-def option1():
-    print("this is option 1")
-
 def option2():
     print("this is option 2")
 
@@ -95,6 +92,9 @@ def option3():
 
 def option4():
     print("this is option 4")
+
+def option0():    
+    exit()
 
 
 def main(func_keys,user_cmd):
