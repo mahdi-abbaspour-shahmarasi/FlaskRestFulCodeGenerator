@@ -7,14 +7,12 @@ def clearScreen():
 clearScreen()
 tprint('CodeGenerator')
 print('====================================================================================')
-
 print('1. Generate Code Step By Step')
 print('2. Generate Code By Existing Class')
 print('3. Help')
 print('4. About')
 print('0. Exit')
 print('====================================================================================')
-
 
 #accept only numeric input
 def getInput():
@@ -25,6 +23,7 @@ def getInput():
         inp_value = input("Select Menu Item:")
     return int(inp_value)
 
+#check and return field type
 def getFieldType(field):
     _type = ""
     if field == "string" or field == "str":
@@ -40,27 +39,43 @@ def getFieldType(field):
         _type="Field"
     return _type
 
-
-getInput()
-
-user_cmd=inp_value
-
-
-#define menu options as functions
-def option1():
+#define menu items as functions
+def item1():
     print('==== Generate Code Step By Step ====\n')
 
     class_name=input("Please enter class name: ")
     print("class name is:",class_name+"\n")
 
-    print("Enter fields name and types separated by ',' and space")
-    print("like => name,string age,int\n")
-    
-    input_list = input()
-    #split fields
-    class_fields_list = input_list.split()
+    print("Please complete class details.")
+ 
+    class_fields_name=[]
+    class_fields_type=[]
+    class_fields_req=[]
 
-    print(class_name,'fields are: ', class_fields_list)
+    while True:   
+        _name = input("Enter field name: ")
+        if not _name:
+            print("done.")
+            break
+
+        _type = input("Enter field type: ")
+        _isRequirement = input("The field is requirement? (True/Flase): ")
+        
+        class_fields_name.append(_name)
+        class_fields_type.append(_type)
+
+        # default value is True
+        _isRequirement=_isRequirement.capitalize()
+        if _isRequirement!="True" and _isRequirement!="False":
+            _isRequirement="True"
+        class_fields_req.append(_isRequirement)
+        
+        print("\n"+class_name+" class info:")
+        for _n,_t,_r in zip(class_fields_name,class_fields_type,class_fields_req):
+            print("field name: "+_n+"\t field type: "+_t+"\t field requirement: "+_r)
+        
+    
+
     print("Creating class file ...")
     print("=========================")
 
@@ -70,45 +85,43 @@ def option1():
     "\nclass "+class_name+"(db.Document):\n")
 
 
-    for fields in class_fields_list:
-        #split field and type
-        field=fields.split(',')
+    for _fieldName,_fieldType,_fieldRequirement in zip(class_fields_name,class_fields_type,class_fields_req):
+        _fieldType=getFieldType(_fieldType)
 
-        _fieldName=field[0]
-        _fieldType=getFieldType(field[1])
-
-        textfile.write("\t"+_fieldName+ " = db."+_fieldType+"(required=True)\n")
+        textfile.write("\t"+_fieldName+ " = db."+_fieldType+"(required="+_fieldRequirement+")\n")
 
     textfile.close()
 
-    print("Class file created with "+class_name+".py"+" name.")
+    print("Class file successfully created -> name: "+class_name+".py")
 
+def item2():
+    print("this is item 2")
 
-def option2():
-    print("this is option 2")
+def item3():
+    print("this is item 3")
 
-def option3():
-    print("this is option 3")
+def item4():
+    print("this is item 4")
 
-def option4():
-    print("this is option 4")
-
-def option0():    
+def item0():    
     exit()
 
+func_keys={
+    '0':item0,
+    '1':item1,
+    '2':item2,
+    '3':item3,
+    '4':item4,
+}
 
 def main(func_keys,user_cmd):
         count=len(func_keys.keys())
         if count > int(user_cmd):
             func_keys[user_cmd]()
         else:
-            print("There is no options, please select other option.")
+            print("There is no items, please select other item.")
 
-func_keys={
-    '0':option0,
-    '1':option1,
-    '2':option2,
-    '3':option3,
-    '4':option4,
-}
+getInput()
+user_cmd=inp_value
+
 main(func_keys,user_cmd)
