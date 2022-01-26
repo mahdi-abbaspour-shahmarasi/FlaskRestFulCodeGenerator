@@ -96,31 +96,34 @@ def item1():
     print("Creating class file ...")
     print("=========================")
 
-    #check to exist src directory
-    if not isdir("src"):
-        os.mkdir("src")
-        os.mkdir("src/Api")
-        os.mkdir("src/Models")
+    #check to exist output directory
+    if not isdir("output"):
+        os.mkdir("output")
+        os.mkdir("output/Api")
+        os.mkdir("output/Models")
     class_text="""from typing import ClassVar
-from .db import db
+from database.db import db
 import datetime
 """
 
     #create class file        
-    classFile = open("src/Models/"+class_name+".py", "w")
+    classFile = open("output/Models/"+class_name+".py", "w")
     classFile.write(class_text+
         "\nclass "+class_name+"(db.Document):\n")
 
     for _fieldName, _fieldType, _fieldRequirement in zip(class_fields_name, class_fields_type, class_fields_req):
         _fieldType = _fieldType
-
-        classFile.write("\t"+_fieldName + " = db."+_fieldType +
+        if _fieldType=="DateTimeField":
+            classFile.write("\t"+_fieldName + " = db."+_fieldType +
+                       "(default=datetime.datetime.utcnow)\n")           
+        else:    
+            classFile.write("\t"+_fieldName + " = db."+_fieldType +
                        "(required="+_fieldRequirement+")\n")
 
     classFile.close()
 
     api_text = """from flask import jsonify, make_response, request
-from src.Models import {ClassName}
+from output.Models.{ClassName} import {ClassName}
 from flask_restful import Resource
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
@@ -137,26 +140,25 @@ class {ClassName}sApi(Resource):
     # update {class_var}s
     def post(self):
         body = request.get_json()
-        id = body['id']
+        id = body["id"]
         {class_var} = {ClassName}.objects(id=id)
         if {class_var}.count() > 0:
-            body=deque(body)
-            # pop id field - we dont update id field
-            body=body.pop()
-            for {var} in body:
-                var={var}
-                val=body[{var}]
-                {class_var}.update(var=val)
-            return make_response(jsonify({class_var}), 200)
+            
+            # delete id field
+            del body['id']
+            
+            # update everything in body
+            {class_var}.update(**body)
+            return make_response(jsonify({{"Message":"Sussefully updated","Result":{class_var}}}), 200)
         else:
-            return make_response(jsonify({{'Message': 'Not Found'}}), 200)  
+            return make_response(jsonify({{'Message': 'Not Found'}}), 200)
     
     # create new {class_var}
     def put(slef):
         body = request.get_json()
         {class_var} = {ClassName}(**body)
         {class_var}.save()
-        return make_response(jsonify({{'Message': 'Successfully created with ID'+str({class_var}.id)}}), 200)
+        return make_response(jsonify({{'Created{ClassName}ID':str({class_var}.id)}}), 200)
 
     # delete {class_var} by id
     def delete(slef):
@@ -172,28 +174,27 @@ class {ClassName}sApi(Resource):
 
     #create api file
     _class_var=class_name.lower()
-    _var="_"+class_name.lower()
 
-    apiFile = open("src/Api/"+class_name+".py", "w")
-    apiFile.write(api_text.format(ClassName=class_name,class_var=_class_var,var=_var))
+    apiFile = open("output/Api/"+class_name+".py", "w")
+    apiFile.write(api_text.format(ClassName=class_name,class_var=_class_var))
     apiFile.close()
 
     route_text="""# === {className}s Api ===
 
-from Api.{className} import {className}sApi
+from .Api.{className} import {className}sApi
 
 def initialize_routes(api):
  api.add_resource({className}sApi, '/{class_var}s')
 """
     
     #create route file
-    routeFile=open("src/route.py","a")
+    routeFile=open("output/route.py","a")
     routeFile.write(route_text.format(className=class_name,class_var=_class_var))
     routeFile.close()
 
-    print("Class file successfully created -> path: src/Models/"+class_name+".py")
-    print("Api file successfully created -> path: src/Api/api.py")
-    print("Route file successfully Edited -> path: src/route.py")
+    print("Class file successfully created -> path: output/Models/"+class_name+".py")
+    print("Api file successfully created -> path: output/Api/api.py")
+    print("Route file successfully Edited -> path: output/route.py")
 
 
 def item2():
