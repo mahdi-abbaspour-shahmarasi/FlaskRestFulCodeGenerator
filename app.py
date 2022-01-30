@@ -99,15 +99,17 @@ def item1():
     #check to exist output directory
     if not isdir("output"):
         os.mkdir("output")
-        os.mkdir("output/Api")
-        os.mkdir("output/Models")
+        os.mkdir("output/database")
+        os.mkdir("output/resources")
+        os.mkdir("output/routes")
+        
     class_text="""from typing import ClassVar
 from database.db import db
 import datetime
 """
 
     #create class file        
-    classFile = open("output/Models/"+class_name+".py", "w")
+    classFile = open("output/database/"+class_name+".py", "w")
     classFile.write(class_text+
         "\nclass "+class_name+"(db.Document):\n")
 
@@ -123,15 +125,10 @@ import datetime
     classFile.close()
 
     api_text = """from flask import jsonify, make_response, request
-from output.Models.{ClassName} import {ClassName}
+from database.{ClassName} import {ClassName}
 from flask_restful import Resource
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-import datetime
-from flask_bcrypt import generate_password_hash
-import re
-from collections import deque
 
-class {ClassName}sApi(Resource):
+class {ClassName}Api(Resource):
     # get all {class_var}s
     def get(slef):
         {class_var} = {ClassName}.objects.all()
@@ -175,26 +172,25 @@ class {ClassName}sApi(Resource):
     #create api file
     _class_var=class_name.lower()
 
-    apiFile = open("output/Api/"+class_name+".py", "w")
+    apiFile = open("output/resources/"+_class_var+".py", "w")
     apiFile.write(api_text.format(ClassName=class_name,class_var=_class_var))
     apiFile.close()
 
-    route_text="""# === {className}s Api ===
-
-from .Api.{className} import {className}sApi
+    route_text="""#{className}
+from .{class_var} import {className}Api
 
 def initialize_routes(api):
- api.add_resource({className}sApi, '/{class_var}s')
+ api.add_resource({className}Api, '/{class_var}')
 """
     
     #create route file
-    routeFile=open("output/route.py","a")
+    routeFile=open("output/routes/"+_class_var+".py","w")
     routeFile.write(route_text.format(className=class_name,class_var=_class_var))
     routeFile.close()
 
-    print("Class file successfully created -> path: output/Models/"+class_name+".py")
-    print("Api file successfully created -> path: output/Api/api.py")
-    print("Route file successfully Edited -> path: output/route.py")
+    print("Class file successfully created -> path: output/database/"+class_name+".py")
+    print("Api file successfully created -> path: output/resources/"+_class_var+".py")
+    print("Route file successfully Edited -> path: output/routes/"+_class_var+".py")
 
 
 def item2():
