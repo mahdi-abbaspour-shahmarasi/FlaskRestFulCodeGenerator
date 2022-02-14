@@ -123,19 +123,31 @@ import datetime
                        "(required="+_fieldRequirement+")\n")
 
     classFile.close()
+    # perm_var=class_name[:-1]
+
+    perm_var= class_name[:-1] if class_name[-1]=='s' else class_name
 
     api_text = """from flask import jsonify, make_response, request
 from database.{ClassName} import {ClassName}
 from flask_restful import Resource
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity,get_jwt
 
 class {ClassName}Api(Resource):
-    # get all {class_var}s
+    # get all {class_var}
+    @jwt_required()
     def get(slef):
+        claims = get_jwt()['perms']
+        if not(("get{ClassName}List" in claims) or "administrator" in claims):
+            return make_response(jsonify({{"Message":"Not Allowed"}}), 406)         
         {class_var} = {ClassName}.objects.all()
         return make_response(jsonify({class_var}), 200)
 
-    # update {class_var}s
+    # update {class_var}
+    @jwt_required()
     def post(self):
+        claims = get_jwt()['perms']
+        if not(("update{perm_var}" in claims) or "administrator" in claims):
+            return make_response(jsonify({{"Message":"Not Allowed"}}), 406)         
         body = request.get_json()
         id = body["id"]
         {class_var} = {ClassName}.objects(id=id)
@@ -151,14 +163,22 @@ class {ClassName}Api(Resource):
             return make_response(jsonify({{'Message': 'Not Found'}}), 200)
     
     # create new {class_var}
+    @jwt_required()
     def put(slef):
+        claims = get_jwt()['perms']
+        if not(("create{perm_var}" in claims) or "administrator" in claims):
+            return make_response(jsonify({{"Message":"Not Allowed"}}), 406)                 
         body = request.get_json()
         {class_var} = {ClassName}(**body)
         {class_var}.save()
         return make_response(jsonify({{'Created{ClassName}ID':str({class_var}.id)}}), 200)
 
     # delete {class_var} by id
+    @jwt_required()
     def delete(slef):
+        claims = get_jwt()['perms']
+        if not(("delete{perm_var}" in claims) or "administrator" in claims):
+            return make_response(jsonify({{"Message":"Not Allowed"}}), 406)         
         body = request.get_json()
         id = body['id']
         {class_var} = {ClassName}.objects(id=id)
@@ -173,7 +193,7 @@ class {ClassName}Api(Resource):
     _class_var=class_name.lower()
 
     apiFile = open("output/resources/"+_class_var+".py", "w")
-    apiFile.write(api_text.format(ClassName=class_name,class_var=_class_var))
+    apiFile.write(api_text.format(ClassName=class_name,class_var=_class_var,perm_var=perm_var))
     apiFile.close()
 
     route_text="""#{className}
